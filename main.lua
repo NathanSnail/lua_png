@@ -1,6 +1,7 @@
 local ffi = require("ffi")
 local make_reader = require("byte_reader").new_byte_reader
 local handlers = require("chunk_handlers")
+local compression = require("compression")
 
 ---@param data byte_reader
 ---@param chunk_values handler_result[]
@@ -26,10 +27,24 @@ local function do_chunk(data, chunk_values)
 end
 
 ---@param chunk_handlers handler_result[]
-local function get_data_stream(chunk_handlers) end
+---@return byte_reader data
+local function get_data_stream(chunk_handlers)
+	local data_stream = {}
+	local ptr = 0
+	for k, v in ipairs(chunk_handlers) do
+		if v.type == "IDAT" then
+			for i = 0, #v.data.bytes do
+				ptr = ptr + 1
+				data_stream[ptr] = v.data.bytes[i]
+			end
+		end
+	end
+	return make_reader(ffi.new("unsigned char[?]", #data_stream, data_stream)), ptr
+end
 
 ---@param data byte_reader
 ---@param max integer
+---@return handler_result[]
 local function get_chunks(data, max)
 	local chunk_values = {}
 	local start = ffi.cast("int", data.data)
@@ -40,8 +55,11 @@ local function get_chunks(data, max)
 	while ffi.cast("int", data.data) - start < max do
 		do_chunk(data, chunk_values)
 	end
+	return chunk_values
 end
 
 local content = assert(assert(io.open("test.png", "rb")):read("*a"))
 local png = make_reader(ffi.cast("unsigned char*", content))
-get_chunks(png, content:len())
+local chunk_values = get_chunks(png, content:len())
+local data_stream, size = get_data_stream(chunk_values)
+local decompressed = compression.decompress(data_stream, size)

@@ -1,3 +1,5 @@
+local ffi = require("ffi")
+
 ---@class handler_result
 ---@field type string
 ---@field data table<string, any>
@@ -59,8 +61,10 @@ local M = {
 		if colour_type == PALLETE_TYPE.indexed_colour then
 			data.pallete_transparency = {}
 			for i = 0, length - 1 do
-				data.pallete_transparency[i] = reader:read_be(1)
+				data.pallete_transparency[i + 1] = reader:read_be(1)
 			end
+			data.pallete_transparency =
+				ffi.new("unsigned char[?]", #data.pallete_transparency, data.pallete_transparency)
 		elseif colour_type == PALLETE_TYPE.true_colour then
 			data.transparent_colour = {
 				red = reader:read_be(2),
