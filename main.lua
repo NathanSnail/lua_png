@@ -25,6 +25,9 @@ local function do_chunk(data, chunk_values)
 	end
 end
 
+---@param chunk_handlers handler_result[]
+local function get_data_stream(chunk_handlers) end
+
 ---@param data byte_reader
 ---@param max integer
 local function get_chunks(data, max)
