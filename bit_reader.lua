@@ -1,11 +1,12 @@
 local ffi = require("ffi")
 local bit_lib = require("bits")
 
----@class bit_array
----@field data boolean[]
----@field get fun(self: bit_array, index: integer): boolean?
----@field set fun(self: bit_array, index: integer, value: boolean)
----@field len fun(self: bit_array): integer
+---Different to byte_reader because this thing is slower and generally more jank.
+---@class bit_reader
+---@field data ffi.cdata*
+---@field shift integer
+---@field read_bits fun(self: bit_reader, count: integer): bit_array
+---@field skip fun(self: bit_reader, count: integer)
 
 ---@param self bit_reader
 ---@param count integer
