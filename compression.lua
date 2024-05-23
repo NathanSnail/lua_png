@@ -1,17 +1,20 @@
 local ffi = require("ffi")
+local bits = require("bits")
+local bytes = require("byte_reader")
+local get_bits = bits.get_bits
+local create_bit_reader = require("bit_reader")
 
 local M = {}
 
----@param data integer
----@param start integer
----@param stop integer
----@return integer
-local function get_bits(data, start, stop)
-	local mask = 0
-	for i = start, stop do
-		mask = mask + math.pow(2, i)
+---@param reader bit_reader
+---@param decompressed_stream byte_reader
+local function do_chunk(reader, decompressed_stream)
+	local final = reader:read_bits(1):eqi(0b1)
+	local data_type = reader:read_bits(2)
+	if data_type:eqi(0b11) then
+		error("reserved deflate btype value")
 	end
-	return bit.rshift(bit.band(data, mask), start)
+	print(final, data_type:dump())
 end
 
 ---@param data byte_reader
@@ -49,7 +52,10 @@ function M.decompress(data, size)
 		-- regardless, i don't really like this checksum method.
 		error("corrupted zlib header, flag check broken")
 	end
-	print(flag_dict, compression_level)
+	print(flag_dict, compression_level, dict_id)
+	local bit_reader = create_bit_reader(data.data)
+	local decompressed_stream = bytes.new_byte_reader({})
+	do_chunk(bit_reader, decompressed_stream)
 end
 
 return M
