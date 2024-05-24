@@ -20,6 +20,7 @@ end
 ---@field eqi fun(self: bit_array, other: integer): boolean
 ---@field eq fun(self: bit_array, other: bit_array): boolean
 ---@field dump fun(self: bit_array): string
+---@field be fun(self: bit_array): integer
 
 ---@param data boolean[]
 ---@return bit_array
@@ -64,6 +65,14 @@ function M.construct_bit_array(data)
 			end
 			return o
 		end,
+		be = function (self)
+			local v = 0
+			for _, b in ipairs(self.data) do
+				v = v * 2
+				v = v + b
+			end
+			return v
+		end
 	}
 	return v
 end

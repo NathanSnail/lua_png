@@ -7,7 +7,7 @@ local create_bit_reader = require("bit_reader")
 local M = {}
 
 ---@param reader bit_reader
----@param decompressed_stream byte_reader
+---@param decompressed_stream byte_array
 local function do_chunk(reader, decompressed_stream)
 	local final = reader:read_bits(1):eqi(0b1)
 	local data_type = reader:read_bits(2)
@@ -15,6 +15,16 @@ local function do_chunk(reader, decompressed_stream)
 		error("reserved deflate btype value")
 	end
 	print(final, data_type:dump())
+	if data_type:eqi(0b00) then
+		reader:skip(8 - reader.skip) -- ???? why have non integer header if you do this.
+		local len_bytes = reader:read_bits(16):be()
+		local _ = reader:read_bits(16) -- ones complement of len
+		local byte_reader = bytes.new_byte_reader(reader.data)
+		local decompressed = byte_reader:read_array(len_bytes)
+		decompressed_stream:concat_push(decompressed)
+		reader:skip(len_bytes * 8)
+		print(len_bytes)
+	end
 end
 
 ---@param data byte_reader
