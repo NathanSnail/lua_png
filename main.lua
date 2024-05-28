@@ -1,4 +1,9 @@
 local ffi = require("ffi")
+local huffman = require("huffman")
+local t = {data={[0] = {data = "A"}, [1] = {data = {[0] = {data = "B"}, [1] = {data = "C"}}}}}
+print(huffman.traverse_huffman(t, {data = {1,0}}))
+print(huffman.traverse_huffman(t, {data = {0}}))
+print(huffman.traverse_huffman(t, {data = {1,1}}))
 local make_reader = require("byte_reader").new_byte_reader
 local handlers = require("chunk_handlers")
 local compression = require("compression")
